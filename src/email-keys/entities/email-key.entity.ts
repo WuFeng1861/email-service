@@ -22,9 +22,15 @@ export class EmailKey {
 
   @Column({ name: 'sent_count', default: 0 })
   sentCount: number;
-
-  @Column({ name: 'last_reset_date', type: 'date', default: () => 'CURRENT_DATE' })
+  
+  // 修改CURRENT_DATE为CURRENT_TIMESTAMP并转换为日期
+  @Column({
+    name: 'last_reset_date',
+    type: 'timestamp',
+    default: () => 'CURRENT_TIMESTAMP'
+  })
   lastResetDate: Date;
+  
   
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;

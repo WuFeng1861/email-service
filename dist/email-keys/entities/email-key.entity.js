@@ -43,7 +43,11 @@ __decorate([
     __metadata("design:type", Number)
 ], EmailKey.prototype, "sentCount", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ name: 'last_reset_date', type: 'date', default: 'CURRENT_DATE' }),
+    (0, typeorm_1.Column)({
+        name: 'last_reset_date',
+        type: 'timestamp',
+        default: () => 'CURRENT_TIMESTAMP'
+    }),
     __metadata("design:type", Date)
 ], EmailKey.prototype, "lastResetDate", void 0);
 __decorate([
