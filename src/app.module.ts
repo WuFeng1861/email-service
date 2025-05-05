@@ -7,6 +7,7 @@ import { EmailQueueModule } from './email-queue/email-queue.module';
 import { StatisticsModule } from './statistics/statistics.module';
 import { CacheModule } from './cache/cache.module';
 import { SystemModule } from './system/system.module';
+import { ProjectReportingModule } from './project-reporting/project-reporting.module';
 
 @Module({
   imports: [
@@ -21,7 +22,7 @@ import { SystemModule } from './system/system.module';
         host: configService.get('DB_HOST', 'localhost'),
         port: configService.get<number>('DB_PORT', 3306),
         username: configService.get('DB_USERNAME', 'root'),
-        password: configService.get('DB_PASSWORD', '666666'),
+        password: configService.get('DB_PASSWORD', 'root'),
         database: configService.get('DB_DATABASE', 'email_service'),
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
         synchronize: true,
@@ -33,6 +34,7 @@ import { SystemModule } from './system/system.module';
     EmailQueueModule,
     StatisticsModule,
     SystemModule,
+    ProjectReportingModule,
   ],
 })
 export class AppModule {}

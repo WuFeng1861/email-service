@@ -16,6 +16,7 @@ const email_queue_module_1 = require("./email-queue/email-queue.module");
 const statistics_module_1 = require("./statistics/statistics.module");
 const cache_module_1 = require("./cache/cache.module");
 const system_module_1 = require("./system/system.module");
+const project_reporting_module_1 = require("./project-reporting/project-reporting.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -33,7 +34,7 @@ exports.AppModule = AppModule = __decorate([
                     host: configService.get('DB_HOST', 'localhost'),
                     port: configService.get('DB_PORT', 3306),
                     username: configService.get('DB_USERNAME', 'root'),
-                    password: configService.get('DB_PASSWORD', '666666'),
+                    password: configService.get('DB_PASSWORD', 'root'),
                     database: configService.get('DB_DATABASE', 'email_service'),
                     entities: [__dirname + '/**/*.entity{.ts,.js}'],
                     synchronize: true,
@@ -45,6 +46,7 @@ exports.AppModule = AppModule = __decorate([
             email_queue_module_1.EmailQueueModule,
             statistics_module_1.StatisticsModule,
             system_module_1.SystemModule,
+            project_reporting_module_1.ProjectReportingModule,
         ],
     })
 ], AppModule);
