@@ -12,8 +12,6 @@ var ProjectReportingService_1;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ProjectReportingService = void 0;
 const common_1 = require("@nestjs/common");
-const axios_1 = require("axios");
-const os = require("os");
 let ProjectReportingService = ProjectReportingService_1 = class ProjectReportingService {
     constructor() {
         this.logger = new common_1.Logger(ProjectReportingService_1.name);
@@ -35,15 +33,7 @@ let ProjectReportingService = ProjectReportingService_1 = class ProjectReporting
     async reportStatus() {
         this.reportingStatus = true;
         try {
-            const networkInterfaces = os.networkInterfaces();
-            let serverIp = process.env.SERVER_IP || 'localhost';
-            Object.values(networkInterfaces).forEach((interfaces) => {
-                interfaces.forEach((iface) => {
-                    if (!iface.internal && iface.family === 'IPv4') {
-                        serverIp = iface.address;
-                    }
-                });
-            });
+            let serverIp = process.env.SERVER_IP || '127.0.0.1';
             const runtimeSeconds = Math.floor((Date.now() - this.startTime.getTime()) / 1000);
             const data = {
                 serviceName: 'email-service',
@@ -55,14 +45,6 @@ let ProjectReportingService = ProjectReportingService_1 = class ProjectReporting
                 lastRestartTime: this.startTime.toISOString(),
                 projectPassword: 'wufeng1998-email'
             };
-            const response = await axios_1.default.post('https://wufeng98.cn/projectManagerApi/projects', data);
-            console.log(response.data);
-            if (response.data.success) {
-                this.logger.log('Project status reported successfully');
-            }
-            else {
-                this.logger.warn('Project status report failed:', response.data.message);
-            }
         }
         catch (error) {
             this.logger.error('Failed to report project status:', error.message);

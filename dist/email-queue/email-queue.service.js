@@ -84,7 +84,7 @@ let EmailQueueService = EmailQueueService_1 = class EmailQueueService {
             take: limit,
         });
     }
-    async markAsProcessed(id, status, errorMessage) {
+    async markAsProcessed(id, status, sendEmailKeyId, errorMessage) {
         const email = await this.emailQueueRepository.findOne({ where: { id } });
         if (!email) {
             throw new common_1.NotFoundException(`Email queue item with ID ${id} not found`);
@@ -92,7 +92,8 @@ let EmailQueueService = EmailQueueService_1 = class EmailQueueService {
         email.status = status;
         if (status === email_queue_entity_1.EmailStatus.SENT) {
             email.sentAt = new Date();
-            await this.emailKeysService.incrementSentCount(email.emailKeyId);
+            await this.emailKeysService.incrementSentCount(sendEmailKeyId);
+            email.emailKeyId = sendEmailKeyId;
         }
         else if (status === email_queue_entity_1.EmailStatus.FAILED) {
             email.errorMessage = errorMessage;

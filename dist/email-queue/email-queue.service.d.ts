@@ -15,7 +15,7 @@ export declare class EmailQueueService {
     constructor(emailQueueRepository: Repository<EmailQueue>, emailKeysService: EmailKeysService, emailTemplatesService: EmailTemplatesService, cacheService: CacheService);
     queueEmail(sendEmailDto: SendEmailDto): Promise<EmailQueue>;
     findPendingEmails(limit?: number): Promise<EmailQueue[]>;
-    markAsProcessed(id: number, status: EmailStatus, errorMessage?: string): Promise<EmailQueue>;
+    markAsProcessed(id: number, status: EmailStatus, sendEmailKeyId: number, errorMessage?: string): Promise<EmailQueue>;
     getQueueStats(): Promise<{
         total: number;
         pending: number;

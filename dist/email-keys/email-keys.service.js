@@ -48,6 +48,16 @@ let EmailKeysService = EmailKeysService_1 = class EmailKeysService {
         }
         return emailKey;
     }
+    async findOtherSameAppKeyById(id) {
+        const emailKeys = await this.findAll();
+        let emailKey = emailKeys.find(key => key.id === id);
+        let otherSameAppKeys = emailKeys.filter(key => key.app === emailKey.app && key.id !== id);
+        let otherSameAppKey = otherSameAppKeys.find(key => key.sentCount < key.limitCount);
+        if (!otherSameAppKey) {
+            return null;
+        }
+        return otherSameAppKey;
+    }
     async findByApp(app) {
         const emailKeys = await this.findAll();
         return emailKeys.filter(key => key.app === app);

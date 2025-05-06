@@ -13,6 +13,7 @@ export declare class EmailKeysService {
     create(createEmailKeyDto: CreateEmailKeyDto): Promise<EmailKey>;
     findAll(): Promise<EmailKey[]>;
     findOne(id: number): Promise<EmailKey>;
+    findOtherSameAppKeyById(id: number): Promise<EmailKey | null>;
     findByApp(app: string): Promise<EmailKey[]>;
     update(id: number, updateEmailKeyDto: UpdateEmailKeyDto): Promise<EmailKey>;
     remove(id: number): Promise<void>;

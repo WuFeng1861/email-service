@@ -1,6 +1,5 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import axios from 'axios';
-import * as os from 'os';
 
 @Injectable()
 export class ProjectReportingService implements OnModuleInit {
@@ -33,17 +32,7 @@ export class ProjectReportingService implements OnModuleInit {
   private async reportStatus() {
     this.reportingStatus = true;
     try {
-      const networkInterfaces = os.networkInterfaces();
-      let serverIp = process.env.SERVER_IP || 'localhost';
-
-      // Try to find a non-internal IPv4 address
-      Object.values(networkInterfaces).forEach((interfaces) => {
-        interfaces.forEach((iface) => {
-          if (!iface.internal && iface.family === 'IPv4') {
-            serverIp = iface.address;
-          }
-        });
-      });
+      let serverIp = process.env.SERVER_IP || '127.0.0.1';
 
       const runtimeSeconds = Math.floor((Date.now() - this.startTime.getTime()) / 1000);
 

@@ -8,6 +8,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SystemService = void 0;
 const common_1 = require("@nestjs/common");
+const process = require("process");
 let SystemService = class SystemService {
     async restart() {
         process.exit(999);

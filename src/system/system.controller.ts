@@ -1,7 +1,10 @@
 import { Controller, Post, Body, HttpException, HttpStatus } from '@nestjs/common';
 import { SystemService } from './system.service';
+import {IsNotEmpty, IsString} from 'class-validator';
 
 class RestartDto {
+  @IsNotEmpty()
+  @IsString()
   password: string;
 }
 
@@ -11,7 +14,8 @@ export class SystemController {
 
   @Post('restart-p')
   async restart(@Body() restartDto: RestartDto) {
-    if (restartDto.password !== 'wufeng1998-email') {
+    console.log(process.env.SERVER_PASSWORD, restartDto)
+    if (restartDto.password !== process.env.SERVER_PASSWORD) {
       throw new HttpException('Invalid password', HttpStatus.UNAUTHORIZED);
     }
     

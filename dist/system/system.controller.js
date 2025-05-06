@@ -15,14 +15,21 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.SystemController = void 0;
 const common_1 = require("@nestjs/common");
 const system_service_1 = require("./system.service");
+const class_validator_1 = require("class-validator");
 class RestartDto {
 }
+__decorate([
+    (0, class_validator_1.IsNotEmpty)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], RestartDto.prototype, "password", void 0);
 let SystemController = class SystemController {
     constructor(systemService) {
         this.systemService = systemService;
     }
     async restart(restartDto) {
-        if (restartDto.password !== 'wufeng1998-email') {
+        console.log(process.env.SERVER_PASSWORD, restartDto);
+        if (restartDto.password !== process.env.SERVER_PASSWORD) {
             throw new common_1.HttpException('Invalid password', common_1.HttpStatus.UNAUTHORIZED);
         }
         await this.systemService.restart();

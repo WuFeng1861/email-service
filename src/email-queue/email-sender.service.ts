@@ -42,11 +42,11 @@ export class EmailSenderService implements OnModuleInit {
       switch (emailKey.emailCompany.toLowerCase()) {
         case 'qq':
           host = 'smtp.qq.com';
-          port = 587;
+          port = 25;
           break;
         case '163':
-          host = 'smtp.163.com';
-          port = 465;
+          host = 'smtphz.qiye.163.com';
+          port = 25;
           break;
         case 'ali':
           host = 'smtp.aliyun.com';
@@ -116,30 +116,24 @@ export class EmailSenderService implements OnModuleInit {
   }
 
   private async sendEmail(email: any): Promise<void> {
-    const transporter = this.transporters.get(email.emailKeyId);
-    
-    if (!transporter) {
-      this.logger.error(`No transporter found for email key ${email.emailKeyId}`);
-      await this.emailQueueService.markAsProcessed(
-        email.id,
-        EmailStatus.FAILED,
-        'No valid transporter found',
-      );
-      return;
-    }
-    
     try {
-      const emailKey = await this.emailKeysService.findOne(email.emailKeyId);
+      let emailKey = await this.emailKeysService.findOne(email.emailKeyId);
       
       // Check if email key can send more emails today
       if (!(await this.emailKeysService.canSendEmail(email.emailKeyId))) {
-        this.logger.warn(`Email key ${email.emailKeyId} has reached its daily limit`);
-        await this.emailQueueService.markAsProcessed(
-          email.id,
-          EmailStatus.FAILED,
-          'Daily sending limit reached',
-        );
-        return;
+        
+        let newEmailKey = await this.emailKeysService.findOtherSameAppKeyById(email.emailKeyId);
+        if (!newEmailKey) {
+          this.logger.warn(`Email key ${email.emailKeyId} has reached its daily limit`);
+          await this.emailQueueService.markAsProcessed(
+            email.id,
+            EmailStatus.FAILED,
+            email.emailKeyId,
+            'Daily sending limit reached',
+          );
+          return;
+        }
+        emailKey = newEmailKey;
       }
       
       // Prepare mail options
@@ -157,18 +151,32 @@ export class EmailSenderService implements OnModuleInit {
       } else {
         mailOptions['text'] = email.content;
       }
+  
+      const transporter = this.transporters.get(emailKey.id);
+  
+      if (!transporter) {
+        this.logger.error(`No transporter found for email key ${emailKey.id}`);
+        await this.emailQueueService.markAsProcessed(
+          email.id,
+          EmailStatus.FAILED,
+          email.emailKeyId,
+          'No valid transporter found',
+        );
+        return;
+      }
       
       // Send email
       await transporter.sendMail(mailOptions);
       
       // Mark as sent
-      await this.emailQueueService.markAsProcessed(email.id, EmailStatus.SENT);
+      await this.emailQueueService.markAsProcessed(emailKey.id, EmailStatus.SENT, email.emailKeyId);
       this.logger.log(`Email ${email.id} sent successfully`);
     } catch (error) {
       this.logger.error(`Error sending email ${email.id}:`, error);
       await this.emailQueueService.markAsProcessed(
         email.id,
         EmailStatus.FAILED,
+        email.emailKeyId,
         error.message || 'Unknown error',
       );
     }

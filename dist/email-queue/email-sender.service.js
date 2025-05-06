@@ -110,18 +110,16 @@ let EmailSenderService = EmailSenderService_1 = class EmailSenderService {
         }
     }
     async sendEmail(email) {
-        const transporter = this.transporters.get(email.emailKeyId);
-        if (!transporter) {
-            this.logger.error(`No transporter found for email key ${email.emailKeyId}`);
-            await this.emailQueueService.markAsProcessed(email.id, email_queue_entity_1.EmailStatus.FAILED, 'No valid transporter found');
-            return;
-        }
         try {
-            const emailKey = await this.emailKeysService.findOne(email.emailKeyId);
+            let emailKey = await this.emailKeysService.findOne(email.emailKeyId);
             if (!(await this.emailKeysService.canSendEmail(email.emailKeyId))) {
-                this.logger.warn(`Email key ${email.emailKeyId} has reached its daily limit`);
-                await this.emailQueueService.markAsProcessed(email.id, email_queue_entity_1.EmailStatus.FAILED, 'Daily sending limit reached');
-                return;
+                let newEmailKey = await this.emailKeysService.findOtherSameAppKeyById(email.emailKeyId);
+                if (!newEmailKey) {
+                    this.logger.warn(`Email key ${email.emailKeyId} has reached its daily limit`);
+                    await this.emailQueueService.markAsProcessed(email.id, email_queue_entity_1.EmailStatus.FAILED, email.emailKeyId, 'Daily sending limit reached');
+                    return;
+                }
+                emailKey = newEmailKey;
             }
             const mailOptions = {
                 from: `"${emailKey.app}" <${emailKey.user}>`,
@@ -136,13 +134,19 @@ let EmailSenderService = EmailSenderService_1 = class EmailSenderService {
             else {
                 mailOptions['text'] = email.content;
             }
+            const transporter = this.transporters.get(emailKey.id);
+            if (!transporter) {
+                this.logger.error(`No transporter found for email key ${emailKey.id}`);
+                await this.emailQueueService.markAsProcessed(email.id, email_queue_entity_1.EmailStatus.FAILED, email.emailKeyId, 'No valid transporter found');
+                return;
+            }
             await transporter.sendMail(mailOptions);
-            await this.emailQueueService.markAsProcessed(email.id, email_queue_entity_1.EmailStatus.SENT);
+            await this.emailQueueService.markAsProcessed(emailKey.id, email_queue_entity_1.EmailStatus.SENT, email.emailKeyId);
             this.logger.log(`Email ${email.id} sent successfully`);
         }
         catch (error) {
             this.logger.error(`Error sending email ${email.id}:`, error);
-            await this.emailQueueService.markAsProcessed(email.id, email_queue_entity_1.EmailStatus.FAILED, error.message || 'Unknown error');
+            await this.emailQueueService.markAsProcessed(email.id, email_queue_entity_1.EmailStatus.FAILED, email.emailKeyId, error.message || 'Unknown error');
         }
     }
 };

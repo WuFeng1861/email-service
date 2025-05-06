@@ -49,6 +49,19 @@ export class EmailKeysService {
     
     return emailKey;
   }
+  
+  async findOtherSameAppKeyById(id: number):  Promise<EmailKey | null> {
+    const emailKeys = await this.findAll();
+    let emailKey = emailKeys.find(key => key.id === id);
+    // 遍历出还能发送邮件的id
+    let otherSameAppKeys = emailKeys.filter(key => key.app === emailKey.app && key.id !== id);
+    let otherSameAppKey = otherSameAppKeys.find(key => key.sentCount < key.limitCount)
+    if (!otherSameAppKey) {
+      return null;
+    }
+    return otherSameAppKey;
+    
+  }
 
   async findByApp(app: string): Promise<EmailKey[]> {
     const emailKeys = await this.findAll();

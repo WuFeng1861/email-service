@@ -63,7 +63,7 @@ export class EmailQueueService {
     // Create queue entry
     const queueEntry = this.emailQueueRepository.create({
       app: sendEmailDto.app,
-      recipient: sendEmailDto.recipientName 
+      recipient: sendEmailDto.recipientName
         ? `${sendEmailDto.recipientName} <${sendEmailDto.recipient}>`
         : sendEmailDto.recipient,
       cc: formatRecipients(sendEmailDto.cc),
@@ -94,7 +94,7 @@ export class EmailQueueService {
     });
   }
 
-  async markAsProcessed(id: number, status: EmailStatus, errorMessage?: string): Promise<EmailQueue> {
+  async markAsProcessed(id: number, status: EmailStatus, sendEmailKeyId: number, errorMessage?: string): Promise<EmailQueue> {
     const email = await this.emailQueueRepository.findOne({ where: { id } });
     
     if (!email) {
@@ -105,7 +105,8 @@ export class EmailQueueService {
     
     if (status === EmailStatus.SENT) {
       email.sentAt = new Date();
-      await this.emailKeysService.incrementSentCount(email.emailKeyId);
+      await this.emailKeysService.incrementSentCount(sendEmailKeyId);
+      email.emailKeyId = sendEmailKeyId;
     } else if (status === EmailStatus.FAILED) {
       email.errorMessage = errorMessage;
       email.retryCount += 1;
