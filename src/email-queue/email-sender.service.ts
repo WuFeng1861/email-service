@@ -169,7 +169,7 @@ export class EmailSenderService implements OnModuleInit {
       await transporter.sendMail(mailOptions);
       
       // Mark as sent
-      await this.emailQueueService.markAsProcessed(emailKey.id, EmailStatus.SENT, email.emailKeyId);
+      await this.emailQueueService.markAsProcessed(email.id, EmailStatus.SENT, email.emailKeyId);
       this.logger.log(`Email ${email.id} sent successfully`);
     } catch (error) {
       this.logger.error(`Error sending email ${email.id}:`, error);
