@@ -48,6 +48,10 @@ export class EmailSenderService implements OnModuleInit {
           host = 'smtphz.qiye.163.com';
           port = 25;
           break;
+        case '163self':
+          host = 'smtp.163.com';
+          port = 25;
+          break;
         case 'ali':
           host = 'smtp.aliyun.com';
           port = 465;

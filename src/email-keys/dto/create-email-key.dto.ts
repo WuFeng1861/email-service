@@ -15,7 +15,7 @@ export class CreateEmailKeyDto {
 
   @IsNotEmpty()
   @IsString()
-  @IsIn(['QQ', '163', 'ali', 'gmail', 'outlook', 'other'])
+  @IsIn(['QQ', '163', 'ali', 'gmail', 'outlook', 'other', "163Self"])
   emailCompany: string;
 
   @IsInt()

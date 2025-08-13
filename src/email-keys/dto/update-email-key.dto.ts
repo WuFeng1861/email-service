@@ -15,7 +15,7 @@ export class UpdateEmailKeyDto {
 
   @IsOptional()
   @IsString()
-  @IsIn(['QQ', '163', 'ali', 'gmail', 'outlook', 'other'])
+  @IsIn(['QQ', '163', 'ali', 'gmail', 'outlook', 'other', "163Self"])
   emailCompany?: string;
 
   @IsOptional()
