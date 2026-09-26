@@ -13,6 +13,9 @@ export class EmailTemplatesService {
   private readonly CACHE_KEY = 'email_templates';
   private readonly CACHE_TTL = 3600; // 1 hour
   private compiledTemplates: Map<number, Handlebars.TemplateDelegate> = new Map();
+  // 主题同样需要渲染。历史 bug：renderTemplate 里 subject 原样返回，
+  // 导致主题中的 {{占位符}} 被直接发出去（如「【风控】{{alert_type}} · {{symbol}}」）。
+  private compiledSubjects: Map<number, Handlebars.TemplateDelegate> = new Map();
 
   constructor(
     @InjectRepository(EmailTemplate)
@@ -71,6 +74,7 @@ export class EmailTemplatesService {
     const template = await this.findOne(id);
     await this.templateRepository.remove(template);
     this.compiledTemplates.delete(id);
+    this.compiledSubjects.delete(id);
     await this.refreshCache();
   }
 
@@ -88,6 +92,14 @@ export class EmailTemplatesService {
     } catch (error) {
       this.logger.error(`Failed to compile template ${template.id}:`, error.message);
     }
+    // 主题与正文分开编译：主题编译失败不应影响正文渲染
+    try {
+      const compiledSubject = Handlebars.compile(template.subject ?? '');
+      this.compiledSubjects.set(template.id, compiledSubject);
+    } catch (error) {
+      this.compiledSubjects.delete(template.id);
+      this.logger.error(`Failed to compile subject of template ${template.id}:`, error.message);
+    }
   }
 
   async renderTemplate(templateId: number, context: Record<string, any>): Promise<{ content: string; subject: string; type: string }> {
@@ -103,12 +115,33 @@ export class EmailTemplatesService {
       throw new Error(`Template ${templateId} is not compiled properly`);
     }
 
+    // 主题模板（缓存未命中时懒编译）
+    let compiledSubject = this.compiledSubjects.get(templateId);
+    if (!compiledSubject) {
+      try {
+        compiledSubject = Handlebars.compile(template.subject ?? '');
+        this.compiledSubjects.set(templateId, compiledSubject);
+      } catch (error) {
+        this.logger.error(`Error compiling subject of template ${templateId}:`, error.message);
+      }
+    }
+
     // Render template with context
     try {
       const content = compiled(context);
+      // subject 必须一起渲染：否则 {{占位符}} 会原样出现在收件箱标题里
+      let subject = template.subject;
+      if (compiledSubject) {
+        try {
+          subject = compiledSubject(context);
+        } catch (error) {
+          // 主题渲染失败不该拦下这封邮件，回落原始 subject
+          this.logger.error(`Error rendering subject ${templateId}:`, error.message);
+        }
+      }
       return {
         content,
-        subject: template.subject,
+        subject,
         type: template.type,
       };
     } catch (error) {
