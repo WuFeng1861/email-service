@@ -1,7 +1,7 @@
 {
   "name": "nestjs-email-service",
   "version": "0.0.1",
-  "description": "Email sending service with NestJS and MySQL",
+  "description": "Email sending service with NestJS and SQLite",
   "author": "",
   "private": true,
   "license": "UNLICENSED",
@@ -26,10 +26,11 @@
     "@nestjs/platform-express": "^10.0.0",
     "@nestjs/typeorm": "^10.0.0",
     "axios": "^1.6.0",
+    "better-sqlite3": "^12.11.1",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.0",
     "handlebars": "^4.7.8",
-    "mysql2": "^3.6.1",
+    "helmet": "^7.1.0",
     "nodemailer": "^6.9.5",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.8.1",
@@ -60,19 +61,11 @@
     "typescript": "^5.1.3"
   },
   "jest": {
-    "moduleFileExtensions": [
-      "js",
-      "json",
-      "ts"
-    ],
+    "moduleFileExtensions": ["js", "json", "ts"],
     "rootDir": "src",
     "testRegex": ".*\\.spec\\.ts$",
-    "transform": {
-      "^.+\\.(t|j)s$": "ts-jest"
-    },
-    "collectCoverageFrom": [
-      "**/*.(t|j)s"
-    ],
+    "transform": { "^.+\\.(t|j)s$": "ts-jest" },
+    "collectCoverageFrom": ["**/*.(t|j)s"],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node"
   }

@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Body, Param, Patch, Delete, ParseIntPipe } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Patch,
+  Delete,
+  ParseIntPipe,
+  Query,
+} from '@nestjs/common';
 import { EmailTemplatesService } from './email-templates.service';
 import { CreateTemplateDto } from './dto/create-template.dto';
 import { UpdateTemplateDto } from './dto/update-template.dto';
@@ -13,9 +23,10 @@ export class EmailTemplatesController {
     return this.templatesService.create(createTemplateDto);
   }
 
+  // 分页 + 正文截断：原来一次把这 152 个模板的完整 HTML 全吐出来
   @Get()
-  findAll(): Promise<EmailTemplate[]> {
-    return this.templatesService.findAll();
+  findAll(@Query('page') page?: string, @Query('limit') limit?: string) {
+    return this.templatesService.findPaginated(Number(page) || 1, Number(limit) || 20);
   }
 
   @Get(':id')

@@ -1,4 +1,11 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from 'typeorm';
+import { Exclude } from 'class-transformer';
 
 @Entity('email_keys')
 export class EmailKey {
@@ -8,7 +15,13 @@ export class EmailKey {
   @Column({ nullable: false })
   user: string;
 
-  @Column({ nullable: false })
+  /**
+   * SMTP 授权码。
+   * select:false → 默认查询不带出，只有 email-keys.service.findSecret() 显式 addSelect 才能拿到。
+   * @Exclude → 万一某条路径把实体直接序列化，也不会出现在 JSON 里。
+   */
+  @Column({ nullable: false, select: false })
+  @Exclude()
   pass: string;
 
   @Column({ nullable: false })
@@ -22,16 +35,15 @@ export class EmailKey {
 
   @Column({ name: 'sent_count', default: 0 })
   sentCount: number;
-  
-  // 修改CURRENT_DATE为CURRENT_TIMESTAMP并转换为日期
+
+  // SQLite 没有 timestamp 类型，统一用 datetime（TEXT 存储，TypeORM 自动转 Date）
   @Column({
     name: 'last_reset_date',
-    type: 'timestamp',
-    default: () => 'CURRENT_TIMESTAMP'
+    type: 'datetime',
+    default: () => 'CURRENT_TIMESTAMP',
   })
   lastResetDate: Date;
-  
-  
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
