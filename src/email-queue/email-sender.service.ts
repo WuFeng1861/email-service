@@ -9,13 +9,7 @@ import { EmailQueueService } from './email-queue.service';
 import { EmailKeysService } from '../email-keys/email-keys.service';
 import { EmailStatus } from './entities/email-queue.entity';
 import { EmailKey } from '../email-keys/entities/email-key.entity';
-
-interface SmtpProfile {
-  host: string;
-  port: number;
-  secure: boolean;
-  requireTLS: boolean;
-}
+import { resolveSmtpProfile } from '../common/smtp-profiles';
 
 /**
  * 审计发现的两个致命点都在这里：
@@ -26,15 +20,6 @@ interface SmtpProfile {
 @Injectable()
 export class EmailSenderService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(EmailSenderService.name);
-
-  private static readonly SMTP: Record<string, SmtpProfile> = {
-    qq: { host: 'smtp.qq.com', port: 465, secure: true, requireTLS: true },
-    '163self': { host: 'smtp.163.com', port: 465, secure: true, requireTLS: true },
-    '163': { host: 'smtphz.qiye.163.com', port: 465, secure: true, requireTLS: true },
-    ali: { host: 'smtp.aliyun.com', port: 465, secure: true, requireTLS: true },
-    gmail: { host: 'smtp.gmail.com', port: 587, secure: false, requireTLS: true },
-    outlook: { host: 'smtp.office365.com', port: 587, secure: false, requireTLS: true },
-  };
 
   private readonly transporters = new Map<number, nodemailer.Transporter>();
   private readonly inflight = new Map<number, Promise<nodemailer.Transporter>>();
@@ -82,13 +67,7 @@ export class EmailSenderService implements OnModuleInit, OnModuleDestroy {
   }
 
   private buildTransporter(key: EmailKey): nodemailer.Transporter {
-    const profile =
-      EmailSenderService.SMTP[String(key.emailCompany || '').toLowerCase()] ?? {
-        host: 'smtp.example.com',
-        port: 587,
-        secure: false,
-        requireTLS: true,
-      };
+    const profile = resolveSmtpProfile(key.emailCompany);
 
     if (profile.host === 'smtp.example.com') {
       this.logger.warn(`未知邮箱服务商: ${key.emailCompany}（key ${key.id}），请检查配置`);

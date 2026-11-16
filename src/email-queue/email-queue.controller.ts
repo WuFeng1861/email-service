@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get, Query } from '@nestjs/common';
+import { Controller, Post, Body, Get, Query, HttpCode } from '@nestjs/common';
 import { EmailQueueService } from './email-queue.service';
 import { SendEmailDto } from './dto/send-email.dto';
 import { EmailQueue } from './entities/email-queue.entity';
@@ -16,6 +16,24 @@ export class EmailQueueController {
   @Post('send')
   sendEmail(@Body() sendEmailDto: SendEmailDto): Promise<EmailQueue> {
     return this.emailQueueService.queueEmail(sendEmailDto);
+  }
+
+  /**
+   * 老探活兼容：GET/HEAD /api/email/send → 204。
+   *
+   * 外部运维台（tianya-mainnet）判断「邮件网关可达」用的是
+   * HEAD https://wufeng98.cn/emailServerApi/api/email/send。这个路径原本只有 POST，
+   * Express 收到 HEAD 会落到 GET 链，最终 404，对方把 4xx 记成 degraded，
+   * 于是那一格即使发信完全正常也一直显示异常。
+   *
+   * 这里只补一个只读探活：不查库、不发信、不返回正文，老调用方零改动。
+   * HEAD 由 Express 自动复用 GET 处理器，不用单独注册。
+   */
+  @Public()
+  @Get('send')
+  @HttpCode(204)
+  probeSend(): void {
+    return;
   }
 
   // 统计接口也保持公开：只暴露数量，不含凭证；老看板/监控还在用

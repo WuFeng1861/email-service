@@ -45,6 +45,19 @@ export class EmailKeysController {
     return toSafeKey(await this.emailKeysService.create(createEmailKeyDto));
   }
 
+  /**
+   * 保存前验一次 SMTP 登录（只握手不发信）。
+   * 编辑场景可以不传 pass，用库里现存的授权码验证。
+   * 永远返回 200 + { ok, message, host }，由前端决定是否拦下保存。
+   */
+  @Post('verify')
+  async verify(
+    @Body()
+    body: { id?: number; user?: string; pass?: string; emailCompany?: string },
+  ) {
+    return this.emailKeysService.verifyCredentials(body ?? {});
+  }
+
   // 审计复现的正是这个接口：无鉴权 + 明文授权码
   @Get()
   async findAll() {
